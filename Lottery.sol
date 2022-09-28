@@ -4,9 +4,12 @@ pragma solidity ^0.8.11;
 contract Lottery {
   address public owner;
   address payable[] public players;
+  uint256 public roundId;
+  mapping(uint256 => address payable) public lotteryArchive;
 
   constructor() {
     owner = msg.sender;
+    roundId = 1;
   }
 
   // Utils - Testing
@@ -23,6 +26,14 @@ contract Lottery {
     return players;
   }
 
+  function getWinnerByRoundId(uint256 _roundId)
+    public
+    view
+    returns (address payable)
+  {
+    return lotteryArchive[_roundId];
+  }
+
   // Lottery Logic
   function enterLottery() public payable {
     require(msg.value >= .01 ether, "You have to pay at least 0.01 Eth!");
@@ -37,6 +48,10 @@ contract Lottery {
     uint256 index = getRandomNumber() % players.length;
     players[index].transfer(address(this).balance);
 
+    lotteryArchive[roundId] = players[index];
+    roundId += 1;
+
+    // Reset the state of contract
     players = new address payable[](0);
   }
 }
